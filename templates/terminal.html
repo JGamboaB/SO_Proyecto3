@@ -20,29 +20,28 @@
                 type: 'POST',
                 url: '/execute',
                 data: {command: command},
-                success: function(result) {
-                    //Appends the result to the terminal component
-                    $('#terminal').append('<p>&gt; ' + command + '</p>'); // &gt = '>'
-                    $('#terminal').append('<pre>' + result + '</pre>');
-                    //Cleans the command text space
-                    $('#command').val(''); 
+                success: function(response) {
+                    $('#terminal').append('<p>'+response.username+'&gt; ' + command + '</p>');
+                    $('#terminal').append('<pre>' + response.result + '</pre>');
+                    $('#command').val('');
                     $('#terminal').scrollTop($('#terminal')[0].scrollHeight);
                 }
             });
         }
-
+    
         $(document).ready(function() {
             $('#command').keypress(function(e) {
-                if (e.which === 13) { //Enter button
+                if (e.which === 13) {
                     submitCommand();
                 }
             });
-
-            $('#submit').click(function() { //Click
+    
+            $('#submit').click(function() {
                 submitCommand();
             });
         });
     </script>
+    
 </head>
 <body>
     <h1>Drive de archivos Web</h1>
