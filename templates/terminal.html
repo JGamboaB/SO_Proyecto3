@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Terminal</title>
+    <style>
+        #terminal {
+            width: 800px;
+            height: 400px;
+            border: 1px solid #ccc;
+            overflow-y: scroll;
+            padding: 10px;
+            font-family: monospace;
+        }
+    </style>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script>
+        function submitCommand() {
+            var command = $('#command').val();
+            $.ajax({
+                type: 'POST',
+                url: '/execute',
+                data: {command: command},
+                success: function(result) {
+                    //Appends the result to the terminal component
+                    $('#terminal').append('<p>&gt; ' + command + '</p>'); // &gt = '>'
+                    $('#terminal').append('<pre>' + result + '</pre>');
+                    //Cleans the command text space
+                    $('#command').val(''); 
+                    $('#terminal').scrollTop($('#terminal')[0].scrollHeight);
+                }
+            });
+        }
+
+        $(document).ready(function() {
+            $('#command').keypress(function(e) {
+                if (e.which === 13) { //Enter button
+                    submitCommand();
+                }
+            });
+
+            $('#submit').click(function() { //Click
+                submitCommand();
+            });
+        });
+    </script>
+</head>
+<body>
+    <h1>Drive de archivos Web</h1>
+    <div id="terminal"></div>
+    <input type="text" id="command" autofocus="autofocus">
+    <button id="submit">Submit</button>
+</body>
+</html>
