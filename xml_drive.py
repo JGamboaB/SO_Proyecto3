@@ -30,10 +30,12 @@ class Folder:
         self.folders = folders if folders is not None else []
 
     def list_dir(self):
+        result = ''
         for file in self.files:
-            print("  File: " + file.name + " - Creation Date: " + file.creation_date + " - Modified Date: " + file.mod_date + " - Size: " + str(file.size))
+            result += ("  File: " + file.name + " - Creation Date: " + file.creation_date + " - Modified Date: " + file.mod_date + " - Size: " + str(file.size) + "\n")
         for folder in self.folders:
-            print("  Folder: " + folder.name)
+            result += ("  Folder: " + folder.name + "\n")
+        return result
 
     def change_dir(self, f_name):      
         for folder in self.folders:
@@ -56,6 +58,17 @@ class Folder:
                     return None  # Path not found, return None
                 
         return current_folder
+    
+    def get_abs_path(self):
+        path_components = []
+        current_folder = self
+
+        while current_folder is not None:
+            path_components.insert(0, current_folder.name)
+            current_folder = current_folder.parent
+
+        absolute_path = "/" + "/".join(path_components)
+        return absolute_path
     
     def find_file(self, file_name):
         for file in self.files:
@@ -95,6 +108,29 @@ class Folder:
             dest_dir.folders.append(dir)
             self.folders.remove(dir)
 
+    def copy_vv_file(self, file_name, path):
+        dest_dir = self.change_dir_abs(path)
+        file = self.find_file(file_name)
+
+        if dest_dir is not None and file is not None:
+
+            for file_ in dest_dir.files:
+                if file_.name == file_name: #File already exists
+                    dest_dir.overwrite_file()
+
+            dest_dir.files.append(file)
+
+    def copy_vv_dir(self, dir_name, path):
+        dest_dir = self.change_dir_abs(path)
+        dir = self.find_dir(dir_name)
+
+        if dest_dir is not None and dir is not None:
+
+            for dir_ in dest_dir.folders:
+                if dir_.name == dir_name: #File already exists
+                    dest_dir.overwrite_folder()
+
+            dest_dir.folders.append(dir)
 
     def overwrite_folder(self): #Ask if you want to overwrite
         pass
