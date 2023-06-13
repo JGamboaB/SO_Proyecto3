@@ -159,7 +159,7 @@ class Folder:
         ct = datetime.datetime.now() #Current Time
         new_file = File(name, content, str(ct), str(ct))
         size = sys.getsizeof(new_file)
-        new_file.size = size
+        new_file.size = str(size)
 
         self.files.append(new_file)
         return new_file
@@ -248,7 +248,7 @@ def xml_to_obj(path):
         xml_contents = file.read()
     
     root = ET.fromstring(xml_contents)
-    username = root.attrib['username']
+    username = root.attrib['name']
     size = root.attrib['size']
 
     fs = Folder(username)
@@ -278,7 +278,7 @@ def tree(node, indent=""):
     output = ""
     output += indent + "└ Folder: " + node.name + "\n"
     for file in node.files:
-        output += indent + "  └ File: " + file.name + " - Contents: " + file.contents + " - Creation Date: " + file.creation_date + " - Modified Date: " + file.mod_date + " - Size: " + str(file.size) + "\n"
+        output += indent + "  └ File: " + file.name + " - Creation Date: " + file.creation_date + " - Modified Date: " + file.mod_date + " - Size: " + str(file.size) + "\n"
     for folder in node.folders:
         output += tree(folder, indent + "  ")
     return output

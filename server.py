@@ -7,7 +7,7 @@ username = ""
 fs = None #file_system NODE
 tree = None
 
-#SAVE CHANGES INTO THE XML FILE with every mkdir, mkfile, copy, move, delete, ...
+#SAVE CHANGES INTO THE XML FILE with every ...
 
 @app.route('/')
 def index():
@@ -27,6 +27,8 @@ def run_command(command):
 
     if parts[0] == 'login':
         if len(parts) > 1:
+            if username != '':
+                return '[Error] You must logout first.', ''
             fs = None
             username = parts[1]
             return 'Username set to ' + username, ''
@@ -51,9 +53,9 @@ def run_command(command):
             if len(parts) > 1: 
                 fs = xml.create_drive(username, parts[1])
                 tree = fs
-                #xml.obj_to_xml(fs) #Save file_system into an XML
+                xml.obj_to_xml(tree) #Save file_system into an XML
                 return 'Drive created successfully', ''
-            return '[Help]: \tdrive &ltsize&gt [Create new drive]\n\t drive [Enter an existing drive]', ''
+            return '[Help]: \tdrive &ltsize&gt [Create new drive], \t drive [Enter an existing drive]', ''
         
     elif parts[0] == 'ls':
         if fs is not None:
@@ -76,16 +78,28 @@ def run_command(command):
     elif parts[0] == 'mkdir':
         if fs is not None:
             if len(parts) > 1:
+
+                if not (fs != tree and not (fs.parent == tree and fs.name == 'shared')): #Cannot modify dir
+                    return '[Error] Cannot edit the current directory', fs.get_abs_path()
+                
                 fs.create_folder(parts[1])
+                xml.obj_to_xml(tree) #Save file_system into an XML
                 return 'Folder made: ' + parts[1], fs.get_abs_path()
+            
             return '[Help] mkdir &ltdir_name&gt', fs.get_abs_path()
         return '[Error] Drive not loaded', ''
     
     elif parts[0] == 'mkfile':
         if fs is not None:
             if len(parts) > 2:
+
+                if not (fs != tree and not (fs.parent == tree and fs.name == 'shared')): #Cannot modify dir
+                    return '[Error] Cannot edit the current directory', fs.get_abs_path()
+
                 fs.create_file(parts[1], ' '.join(parts[2:]))
+                xml.obj_to_xml(tree) #Save file_system into an XML
                 return 'File made: ' + parts[1], fs.get_abs_path()
+            
             return '[Help] mkfile &ltfile_name&gt &ltcontents_of_file&gt', fs.get_abs_path()
         return '[Error] Drive not loaded', ''
 
@@ -112,16 +126,28 @@ def run_command(command):
     elif parts[0] == 'rm':
         if fs is not None:
             if len(parts) > 1:
+
+                if not (fs != tree): #Cannot modify dir
+                    return '[Error] Cannot edit the current directory', fs.get_abs_path()
+                
                 fs.delete_file(parts[1])
+                xml.obj_to_xml(tree) #Save file_system into an XML
                 return 'File deleted', fs.get_abs_path()
+            
             return '[Help] rm &ltfile_name&gt', fs.get_abs_path()
         return '[Error] Drive not loaded', '' 
     
     elif parts[0] == 'rmdir':
         if fs is not None:
             if len(parts) > 1:
+                
+                if not (fs != tree): #Cannot modify dir
+                    return '[Error] Cannot edit the current directory', fs.get_abs_path()
+                
                 fs.delete_folder(parts[1])
+                xml.obj_to_xml(tree) #Save file_system into an XML
                 return 'Directory deleted', fs.get_abs_path()
+            
             return '[Help] rmdir &ltdir_name&gt', fs.get_abs_path()
         return '[Error] Drive not loaded', '' 
     
@@ -131,6 +157,7 @@ def run_command(command):
                 file = fs.find_file(parts[1])
                 if file is not None:
                     file.update(' '.join(parts[2:]))
+                    xml.obj_to_xml(tree) #Save file_system into an XML
                     return 'File \''+ parts[1] + '\' has been modified', fs.get_abs_path()
                 return '[Error] File not found', fs.get_abs_path()
             return '[Help] edit &ltfile_name&gt &ltnew_contents&gt', fs.get_abs_path()
@@ -141,6 +168,7 @@ def run_command(command):
             if len(parts) > 2:
                 result = fs.move_file(parts[1], parts[2])
                 if result is not None:
+                    xml.obj_to_xml(tree) #Save file_system into an XML
                     return 'File \''+parts[1]+'\' moved to: ' + parts[2], fs.get_abs_path()
                 return '[Error] Couldn\'t move file to the desired path', fs.get_abs_path()
             return '[Help] mv &ltfile_name&gt &ltnew_path&gt', fs.get_abs_path()
@@ -151,6 +179,7 @@ def run_command(command):
             if len(parts) > 2:
                 result = fs.move_dir(parts[1], parts[2])
                 if result is not None:
+                    xml.obj_to_xml(tree) #Save file_system into an XML
                     return 'Folder \''+parts[1]+'\' moved to: ' + parts[2], fs.get_abs_path()
                 return '[Error] Couldn\'t move folder to the desired path', fs.get_abs_path()
             return '[Help] mvdir &ltdir_name&gt &ltnew_path&gt', fs.get_abs_path()
