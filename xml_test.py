@@ -35,15 +35,66 @@ class Folder:
         for folder in self.folders:
             print("  Folder: " + folder.name)
 
-    def change_dir(self, f_name):
-        if f_name == "..":
-            return self.parent
-        
+    def change_dir(self, f_name):      
         for folder in self.folders:
             if folder.name == f_name:
                 return folder
-        
         return None
+
+    def change_dir_abs(self, absolute_path):
+        path_components = absolute_path.split('/')
+        current_folder = self
+
+        for component in path_components:
+            if component == "":
+                continue  # Ignore empty components
+            elif component == "..":
+                current_folder = current_folder.parent
+            else:
+                current_folder = current_folder.change_dir(component)
+                if current_folder is None:
+                    return None  # Path not found, return None
+                
+        return current_folder
+    
+    def find_file(self, file_name):
+        for file in self.files:
+            if file.name == file_name:
+                return file
+        return None
+    
+    def move_file(self, file_name, path):
+        dest_dir = self.change_dir_abs(path)
+        file = self.find_file(file_name)
+
+        if dest_dir is not None and file is not None:
+
+            for file_ in dest_dir.files:
+                if file_.name == file_name: #File already exists
+                    dest_dir.overwrite_file()
+
+            dest_dir.files.append(file)
+            self.files.remove(file)
+
+    def find_dir(self, f_name):
+        for folder in self.folders:
+            if folder.name == f_name:
+                return folder
+        return None
+
+    def move_dir(self, dir_name, path):
+        dest_dir = self.change_dir_abs(path)
+        dir = self.find_dir(dir_name)
+
+        if dest_dir is not None and dir is not None:
+
+            for dir_ in dest_dir.folders:
+                if dir_.name == dir_name: #File already exists
+                    dest_dir.overwrite_folder()
+
+            dest_dir.folders.append(dir)
+            self.folders.remove(dir)
+
 
     def overwrite_folder(self): #Ask if you want to overwrite
         pass
@@ -99,9 +150,6 @@ class Folder:
                 self.folders.remove(folder)
                 del folder
     
-    def move_file(self, file_name):
-        pass
-
 
 
 def obj_to_xml(file_system):
@@ -131,14 +179,14 @@ def obj_to_xml(file_system):
     xml_tree.write(file_system.name + ".xml", encoding='utf-8', xml_declaration=True)
 
 
-def xml_to_obj(xml_string):
-    def parse_folder(xml_element):
+def xml_to_obj(path):
+    def parse_folder(xml_element, parent=None):
         name = xml_element.attrib['name']
-        folder = Folder(name)
+        folder = Folder(name, parent=parent)
 
         for child in xml_element:
             if child.tag == "Folder":
-                subfolder = parse_folder(child)
+                subfolder = parse_folder(child, folder)
                 folder.folders.append(subfolder)
             elif child.tag == "File":
                 file = parse_file(child)
@@ -156,7 +204,10 @@ def xml_to_obj(xml_string):
         file = File(name, contents, creation_date, mod_date, size)
         return file
     
-    root = ET.fromstring(xml_string)
+    with open(path, 'r') as file:
+        xml_contents = file.read()
+    
+    root = ET.fromstring(xml_contents)
     username = root.attrib['username']
     size = root.attrib['size']
 
@@ -164,7 +215,7 @@ def xml_to_obj(xml_string):
 
     for child in root:
         if child.tag == "Folder":
-            folder = parse_folder(child)
+            folder = parse_folder(child, fs)
             fs.folders.append(folder)
         elif child.tag == "File":
             file = parse_file(child)
@@ -185,8 +236,8 @@ def print_fs(node, indent=""):
 
 def create_drive(username, size):
     fs = Folder(username)
-    root = Folder('Root', parent=fs)
-    shared = Folder('Shared', parent=fs)
+    root = Folder('root', parent=fs)
+    shared = Folder('shared', parent=fs)
 
     fs.folders.append(root)
     fs.folders.append(shared)
@@ -196,28 +247,3 @@ def create_drive(username, size):
     fs.size = str(size)
 
     return fs
-
-
-
-# / / / / / / / / / / / / / / / / /  Example usage
-xml_data = '''
-<FileSystem username="JohnDoe" size="1024GB">
-  <Folder name="Root">
-    <File name="file1.txt" contents="Lorem ipsum dolor sit amet." creation_date="2022-01-15" mod_date="2022-02-20" size="256KB" />
-    <File name="file2.txt" contents="Sed ut perspiciatis unde omnis iste natus error." creation_date="2022-03-10" mod_date="2022-04-25" size="512KB" />
-    <Folder name="Subfolder">
-      <File name="file3.txt" contents="Nemo enim ipsam voluptatem quia voluptas sit aspernatur aut odit aut fugit." creation_date="2022-05-01" mod_date="2022-06-15" size="128KB" />
-    </Folder>
-  </Folder>
-  <Folder name="Shared">
-    <File name="file4.txt" contents="Consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua." creation_date="2022-07-20" mod_date="2022-08-30" size="64KB" />
-    <Folder name="Subfolder">
-      <File name="file5.txt" contents="Ut enim ad minima veniam, quis nostrum exercitationem ullam corporis suscipit laboriosam." creation_date="2022-09-10" mod_date="2022-10-18" size="32KB" />
-    </Folder>
-  </Folder>
-</FileSystem>
-'''
-
-fs = xml_to_obj(xml_data)
-print_fs(fs)
-obj_to_xml(fs)
