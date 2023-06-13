@@ -13,8 +13,8 @@ def index():
 @app.route('/execute', methods=['POST'])
 def execute():
     command = request.form['command']
-    result, updated_username = run_command(command)
-    return jsonify(result=result, username=updated_username)
+    result, updated_path = run_command(command)
+    return jsonify(result=result, path=updated_path)
 
 def run_command(command):
     global username
@@ -26,62 +26,67 @@ def run_command(command):
             fs = None
             last_username = username
             username = parts[1]
-            return 'Username set to ' + username, last_username
+            return 'Username set to ' + username, ''
         else:
-            return '[Error] Please provide a username.', username
+            return '[Error] Please provide a username.', ''
         
     elif parts[0] == 'logout':
         username = ''
         fs = None
-        return 'You logout.', username
+        return 'You logout.', ''
     
     elif parts[0] == 'drive':
         if username == '':
-            return '[Error] You must be signed in to create/enter a drive', username
+            return '[Error] You must be signed in to create/enter a drive', ''
         
         xml_path = username + ".xml"
         try:
             fs = xml.xml_to_obj(xml_path)
-            return 'Drive loaded successfully into ' + fs.name, username
+            return 'Drive loaded successfully into ' + fs.name, ''
         except FileNotFoundError:
             if len(parts) > 1: 
                 fs = xml.create_drive(username, parts[1])
-                return 'Drive created successfully', username
-            return '[Help]: \tdrive &ltsize&gt [Create new drive]\n\t drive [Enter an existing drive]', username
+                return 'Drive created successfully', ''
+            return '[Help]: \tdrive &ltsize&gt [Create new drive]\n\t drive [Enter an existing drive]', ''
         
     elif parts[0] == 'ls':
         if fs is not None:
-            return fs.list_dir(), username
-        return '[Error] Drive not loaded', username
+            return fs.list_dir(), fs.get_abs_path()
+        return '[Error] Drive not loaded', ''
     
     elif parts[0] == 'cd':
         if fs is not None:
             if len(parts) > 1:
+                last_path = fs.get_abs_path()
+                fs_copy = fs #In case it fails
                 fs = fs.change_dir_abs(parts[1])
                 if fs is not None:
-                    return 'Current dir: ' + fs.name, username
-                return '[Error] Incorrect path', username
-            return '[Help] cd &ltpath&gt', username
-        return '[Error] Drive not loaded', username
+                    return 'Current dir: ' + fs.get_abs_path(), last_path
+                fs = fs_copy
+                return '[Error] Incorrect path', fs.get_abs_path()
+            return '[Help] cd &ltpath&gt', fs.get_abs_path()
+        return '[Error] Drive not loaded', ''
     
     elif parts[0] == 'mkdir':
         if fs is not None:
             if len(parts) > 1:
                 fs.create_folder(parts[1])
-                return 'Folder made: ' + parts[1], username
-            return '[Help] mkdir &ltname_of_directory&gt', username
-        return '[Error] Drive not loaded', username
+                return 'Folder made: ' + parts[1], fs.get_abs_path()
+            return '[Help] mkdir &ltname_of_directory&gt', fs.get_abs_path()
+        return '[Error] Drive not loaded', ''
     
     elif parts[0] == 'mkfile':
         if fs is not None:
             if len(parts) > 2:
                 fs.create_file(parts[1], parts[2:])
-                return 'File made: ' + parts[1], username
-            return '[Help] mkfile &ltname_of_file&gt &ltcontents_of_file&gt', username
-        return '[Error] Drive not loaded', username
+                return 'File made: ' + parts[1], fs.get_abs_path()
+            return '[Help] mkfile &ltname_of_file&gt &ltcontents_of_file&gt', fs.get_abs_path()
+        return '[Error] Drive not loaded', ''
 
     else:
-        return '[Error] Command not found.', username
+        if fs is not None:
+            return '[Error] Command not found.', fs.get_abs_path()
+        return '[Error] Command not found.', ''
 
 
 if __name__ == '__main__':

@@ -40,7 +40,7 @@
                 url: '/execute',
                 data: {command: command},
                 success: function(response) {
-                    $('#terminal').append('<p>'+response.username+'&gt; ' + command + '</p>');
+                    $('#terminal').append('<p>'+response.path+'&gt; ' + command + '</p>');
                     $('#terminal').append('<pre>' + response.result + '</pre>');
                     $('#command').val('');
                     $('#terminal').scrollTop($('#terminal')[0].scrollHeight);
