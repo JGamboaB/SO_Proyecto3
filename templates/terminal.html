@@ -25,6 +25,17 @@
                     $('#terminal').append('<pre>' + response.result + '</pre>');
                     $('#command').val('');
                     $('#terminal').scrollTop($('#terminal')[0].scrollHeight);
+
+                    // Display drive contents after commands that may modify the drive
+                    if (command.startsWith('create') || command.startsWith('share') || command.startsWith('list')) {
+                        $.ajax({
+                            type: 'POST',
+                            url: '/drive_contents',
+                            success: function(driveContents) {
+                                $('#drive-contents').html(driveContents);
+                            }
+                        });
+                    }
                 }
             });
         }
@@ -48,5 +59,8 @@
     <div id="terminal"></div>
     <input type="text" id="command" autofocus="autofocus">
     <button id="submit">Submit</button>
+
+    <h2>Drive Contents:</h2>
+    <pre id="drive-contents"></pre>
 </body>
 </html>
