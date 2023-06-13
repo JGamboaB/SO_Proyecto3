@@ -1,4 +1,5 @@
 import xml.etree.ElementTree as ET
+import os
 import sys
 import datetime
 
@@ -123,6 +124,7 @@ class Folder:
                     dest_dir.overwrite_file()
 
             dest_dir.files.append(file)
+            return file
 
     def copy_vv_dir(self, dir_name, path):
         dest_dir = self.change_dir_abs(path)
@@ -135,6 +137,52 @@ class Folder:
                     dest_dir.overwrite_folder()
 
             dest_dir.folders.append(dir)
+            return dir
+
+    def copy_vr_file(self, file, path):
+        if file is not None:
+            destination_file_path = os.path.join(path, file.name)
+
+            try:
+                with open(destination_file_path, 'w') as destination_file:
+                    destination_file.write(file.contents)
+
+                print(f"File '{file.name}' copied to '{destination_file_path}' successfully.")
+                return file
+            except FileNotFoundError:
+                print('FileNotFound')
+                return None
+        print('File is None')
+        return None
+    
+    def copy_vr_folder(self, folder, path):
+        destination_folder_path = os.path.join(path, folder.name)
+
+        try:
+            os.makedirs(destination_folder_path, exist_ok=True)
+        except FileExistsError:
+            return 
+        except PermissionError:
+            return
+        
+        for file in folder.files:
+            destination_file_path = os.path.join(destination_folder_path, file.name)
+
+            try:
+                with open(destination_file_path, 'w') as destination_file:
+                    destination_file.write(file.contents)
+
+                print(f"File '{file.name}' copied to '{destination_file_path}' successfully.")
+            except FileNotFoundError:
+                print(f"Destination directory '{destination_folder_path}' not found.")
+
+        for subfolder in folder.folders:
+            copied_folder = self.copy_vr_folder(subfolder, destination_folder_path)
+            
+            if copied_folder is None:
+                return
+            
+        return 'Works'
 
     def overwrite_folder(self): #Ask if you want to overwrite
         pass
