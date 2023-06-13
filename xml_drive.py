@@ -10,8 +10,8 @@ class File:
         self.mod_date = mod_date
         self.size = size
     
-    def print_attr(self):
-        print("Name and Extension: " + self.name + "\nCreation Date: " + self.creation_date + "\nModified Date: " + self.mod_date + "\nSize: " + str(self.size) + "\n--------------------------------Content--------------------------------\n"+self.contents)
+    def stats(self):
+        return ("Name and Extension: " + self.name + "\nCreation Date: " + self.creation_date + "\nModified Date: " + self.mod_date + "\nSize: " + str(self.size))
 
     def read(self):
         return self.contents
@@ -32,7 +32,7 @@ class Folder:
     def list_dir(self):
         result = ''
         for file in self.files:
-            result += ("  File: " + file.name + " - Creation Date: " + file.creation_date + " - Modified Date: " + file.mod_date + " - Size: " + str(file.size) + "\n")
+            result += ("  File: " + file.name + " \tCreation Date: " + file.creation_date + " \tModified Date: " + file.mod_date + " \tSize: " + str(file.size) + "\n")
         for folder in self.folders:
             result += ("  Folder: " + folder.name + "\n")
         return result
@@ -48,7 +48,7 @@ class Folder:
         current_folder = self
 
         for component in path_components:
-            if component == "":
+            if component == "" or component == ".":
                 continue  # Ignore empty components
             elif component == "..":
                 current_folder = current_folder.parent
@@ -88,6 +88,8 @@ class Folder:
 
             dest_dir.files.append(file)
             self.files.remove(file)
+            return 1
+        return None
 
     def find_dir(self, f_name):
         for folder in self.folders:
@@ -107,6 +109,8 @@ class Folder:
 
             dest_dir.folders.append(dir)
             self.folders.remove(dir)
+            return 1
+        return None
 
     def copy_vv_file(self, file_name, path):
         dest_dir = self.change_dir_abs(path)
@@ -269,6 +273,16 @@ def print_fs(node, indent=""):
         print(indent + "  File: " + file.name + " - Contents: " + file.contents + " - Creation Date: " + file.creation_date + " - Modified Date: " + file.mod_date + " - Size: " + str(file.size))
     for folder in node.folders:
         print_fs(folder, indent + "  ")
+
+def tree(node, indent=""):
+    output = ""
+    output += indent + "└ Folder: " + node.name + "\n"
+    for file in node.files:
+        output += indent + "  └ File: " + file.name + " - Contents: " + file.contents + " - Creation Date: " + file.creation_date + " - Modified Date: " + file.mod_date + " - Size: " + str(file.size) + "\n"
+    for folder in node.folders:
+        output += tree(folder, indent + "  ")
+    return output
+
 
 def create_drive(username, size):
     fs = Folder(username)

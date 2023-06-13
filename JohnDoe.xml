@@ -1,2 +1,16 @@
 <?xml version='1.0' encoding='utf-8'?>
-<Folder username="JohnDoe" size="1024GB"><Folder name="root"><File name="file1.txt" contents="Lorem ipsum dolor sit amet." creation_date="2022-01-15" mod_date="2022-02-20" size="256KB" /><File name="file2.txt" contents="Sed ut perspiciatis unde omnis iste natus error." creation_date="2022-03-10" mod_date="2022-04-25" size="512KB" /><Folder name="Subfolder"><File name="file3.txt" contents="Nemo enim ipsam voluptatem quia voluptas sit aspernatur aut odit aut fugit." creation_date="2022-05-01" mod_date="2022-06-15" size="128KB" /></Folder></Folder><Folder name="shared"><File name="file4.txt" contents="Consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua." creation_date="2022-07-20" mod_date="2022-08-30" size="64KB" /><Folder name="Subfolder"><File name="file5.txt" contents="Ut enim ad minima veniam, quis nostrum exercitationem ullam corporis suscipit laboriosam." creation_date="2022-09-10" mod_date="2022-10-18" size="32KB" /></Folder></Folder></Folder>
+<Folder username="JohnDoe" size="1024GB">
+    <Folder name="root">
+        <File name="file1.txt" contents="Lorem ipsum dolor sit amet." creation_date="2022-01-15" mod_date="2022-02-20" size="256KB" />
+        <File name="file2.txt" contents="Sed ut perspiciatis unde omnis iste natus error." creation_date="2022-03-10" mod_date="2022-04-25" size="512KB" />
+        <Folder name="Subfolder">
+            <File name="file3.txt" contents="Nemo enim ipsam voluptatem quia voluptas sit aspernatur aut odit aut fugit." creation_date="2022-05-01" mod_date="2022-06-15" size="128KB" />
+        </Folder>
+    </Folder>
+    <Folder name="shared">
+        <File name="file4.txt" contents="Consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua." creation_date="2022-07-20" mod_date="2022-08-30" size="64KB" />
+        <Folder name="Subfolder">
+            <File name="file5.txt" contents="Ut enim ad minima veniam, quis nostrum exercitationem ullam corporis suscipit laboriosam." creation_date="2022-09-10" mod_date="2022-10-18" size="32KB" />
+        </Folder>
+    </Folder>
+</Folder>
