@@ -155,7 +155,7 @@ class Folder:
         print('File is None')
         return None
     
-    def copy_vr_folder(self, folder, path):
+    def copy_vr_dir(self, folder, path):
         destination_folder_path = os.path.join(path, folder.name)
 
         try:
@@ -183,6 +183,49 @@ class Folder:
                 return
             
         return 'Works'
+    
+    def copy_rv_file(self, file_path, path):
+        file_name = os.path.basename(file_path)
+        dir = self.change_dir_abs(path)
+        if dir is None:
+            return None
+
+        if os.path.exists(file_path):
+            with open(file_path, 'r') as source_file:
+                file_contents = source_file.read()  
+            
+            new_file = dir.create_file(file_name, file_contents)
+
+            print(f"File '{file_name}' copied to XML path '{path}' successfully.")
+            return new_file
+        else:
+            print(f"Source file '{file_path}' does not exist.")
+            return None
+    
+    def traverse_folder(self, current_dir, path):
+        for item in os.listdir(path):
+            item_path = os.path.join(path, item)
+            if os.path.isfile(item_path):
+                with open(item_path, "r") as file:
+                    contents = file.read()
+                current_dir.create_file(item, contents)
+            elif os.path.isdir(item_path):
+                i = current_dir.create_folder(item)
+                current_dir.traverse_folder(i, item_path)
+    
+    def copy_rv_dir(self, dir_path, path):
+        base_folder = self.change_dir_abs(path)
+        if base_folder is None:
+            return None
+        
+        if os.path.isdir(dir_path):
+            folder_name = os.path.basename(dir_path)
+            new_folder = base_folder.create_folder(folder_name)
+
+            self.traverse_folder(new_folder, dir_path)
+
+            return new_folder
+        return
 
     def overwrite_folder(self): #Ask if you want to overwrite
         pass

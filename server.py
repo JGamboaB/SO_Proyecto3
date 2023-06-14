@@ -40,6 +40,7 @@ def run_command(command):
     
     # Logout
     elif parts[0] == 'logout':
+        xml.obj_to_xml(tree) #Save file_system into an XML
         username = ''
         fs = tree = None
         return 'You logout.', ''
@@ -241,11 +242,27 @@ def run_command(command):
     
     # Load real file into drive
     elif parts[0] == 'rv':
-        pass
+        if fs is not None:
+            if len(parts) > 2:
+                result = fs.copy_rv_file(parts[1], parts[2])
+                if result is not None:
+                    xml.obj_to_xml(tree) #Save file_system into an XML
+                    return 'File path\'' +parts[1]+'\' copied to: ' + parts[2], fs.get_abs_path()
+                return '[Error] Couldn\'t load file to the desired path', fs.get_abs_path()
+            return '[Help] rv &ltfile_path&gt &ltnew_path&gt', fs.get_abs_path()
+        return '[Error] Drive not loaded.', '' 
     
     # Load real folder into drive
     elif parts[0] == 'rvdir':
-        pass
+        if fs is not None:
+            if len(parts) > 2:
+                result = fs.copy_rv_dir(parts[1], parts[2])
+                if result is not None:
+                    xml.obj_to_xml(tree) #Save file_system into an XML
+                    return 'Folder path\'' +parts[1]+'\' copied to: ' + parts[2], fs.get_abs_path()
+                return '[Error] Couldn\'t load folder to the desired path', fs.get_abs_path()
+            return '[Help] rvdir &ltdir_path&gt &ltnew_path&gt', fs.get_abs_path()
+        return '[Error] Drive not loaded.', '' 
 
     # Download File
     elif parts[0] == 'vr':
@@ -264,7 +281,7 @@ def run_command(command):
         if fs is not None:
             if len(parts) > 2:
                 folder = fs.find_dir(parts[1])
-                result = fs.copy_vr_folder(folder, parts[2])
+                result = fs.copy_vr_dir(folder, parts[2])
                 if result is not None:
                     return 'Folder \'' +parts[1]+'\' copied to: ' + parts[2], fs.get_abs_path()
                 return '[Error] Couldn\'t download folder to the desired path', fs.get_abs_path()
@@ -307,8 +324,8 @@ def run_command(command):
         vvdir &ltdir_name&gt &ltnew_path&gt\tCopy (normal) folder
         vr &ltfile_name&gt &ltnew_path&gt\tCopy (download) file
         vrdir &ltdir_name&gt &ltnew_path&gt\tCopy (download) folder
-        rv &ltfile_name&gt &ltnew_path&gt\tCopy (load) file
-        rvdir &ltdir_name&gt &ltnew_path&gt\tCopy (load) folder
+        rv &ltfile_path&gt &ltnew_path&gt\tCopy (load) file
+        rvdir &ltdir_path&gt &ltnew_path&gt\tCopy (load) folder
         sh &ltfile_name&gt &ltusername&gt\tShare file
         shdir &ltdir_name&gt &ltusername&gt\tShare folder
         rm &ltfile_name&gt\t\t\tRemove file
