@@ -237,9 +237,13 @@ def run_command(command):
         if fs is not None:
             if len(parts) > 2:
 
-                result = fs.copy_vv_dir(parts[1], parts[2])
+                result = fs.copy_vv_dir(tree, parts[1], parts[2])
                 if result is not None:
                     xml.obj_to_xml(tree) #Save file_system into an XML
+
+                    fs = xml.xml_to_obj(username+".xml")
+                    tree = fs
+
                     return 'Folder \''+parts[1]+'\' copied to: ' + parts[2], fs.get_abs_path()
                 
                 return '[Error] Couldn\'t copy folder to the desired path', fs.get_abs_path()

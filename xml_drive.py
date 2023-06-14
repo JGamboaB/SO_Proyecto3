@@ -175,6 +175,13 @@ class Folder:
                 folder.delete_folders()
                 self.folders.remove(folder)
                 del folder
+
+    def size_of_dir(self, size=0):
+        for file in self.files:
+            size += int(file.size)
+        for folder in self.folders:
+            size += folder.size_of_dir()
+        return size
     
     def copy_vv_file(self, fs, file_name, path):
         dest_dir = self.change_dir_abs(path)
@@ -195,7 +202,7 @@ class Folder:
             dest_dir.files.append(new_file)
             return new_file
 
-    def copy_vv_dir(self, dir_name, path):
+    def copy_vv_dir(self, fs, dir_name, path):
         dest_dir = self.change_dir_abs(path)
         dir = self.find_dir(dir_name)
 
@@ -205,7 +212,11 @@ class Folder:
                 if dir_.name == dir_name: #File already exists
                     dest_dir.overwrite_folder()
 
-            dest_dir.folders.append(dir)
+            #Size of all the files <= remaining space
+            if dir.size_of_dir() > remaining_space(fs): #No space left
+                return 
+
+            dest_dir.folders.append(dir) #XML is disconnected and reconnected, so it actually copies the files
             return dir
 
     def copy_vr_file(self, file, path):
