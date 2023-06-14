@@ -42,7 +42,7 @@ def run_command(command):
     elif parts[0] == 'logout':
         if tree is not None:
             xml.obj_to_xml(tree) #Save file_system into an XML
-            
+
         username = ''
         fs = tree = None
         return 'You logout.', ''
@@ -112,9 +112,11 @@ def run_command(command):
                 #if not (fs != tree and not (fs.parent == tree and fs.name == 'shared')): #Cannot modify dir
                 #    return '[Error] Cannot edit the current directory', fs.get_abs_path()
 
-                fs.create_file(parts[1], ' '.join(parts[2:]))
-                xml.obj_to_xml(tree) #Save file_system into an XML
-                return 'File made: ' + parts[1], fs.get_abs_path()
+                result = fs.create_file(tree, parts[1], ' '.join(parts[2:]))
+                if result is not None:
+                    xml.obj_to_xml(tree) #Save file_system into an XML
+                    return 'File made: ' + parts[1], fs.get_abs_path()
+                return '[Error] Not enough space or file already exists', fs.get_abs_path()
             
             return '[Help] mk &ltfile_name&gt &ltcontents_of_file&gt', fs.get_abs_path()
         return '[Error] Drive not loaded', ''
@@ -178,9 +180,11 @@ def run_command(command):
                 file = fs.find_file(parts[1])
 
                 if file is not None:
-                    file.update(' '.join(parts[2:]))
-                    xml.obj_to_xml(tree) #Save file_system into an XML
-                    return 'File \''+ parts[1] + '\' has been modified', fs.get_abs_path()
+                    result = file.update(tree, ' '.join(parts[2:]))
+                    if result is not None:
+                        xml.obj_to_xml(tree) #Save file_system into an XML
+                        return 'File \''+ parts[1] + '\' has been modified', fs.get_abs_path()
+                    return '[Error] Not enough space for changes', fs.get_abs_path()
                 
                 return '[Error] File not found', fs.get_abs_path()
             return '[Help] edit &ltfile_name&gt &ltnew_contents&gt', fs.get_abs_path()
@@ -219,7 +223,7 @@ def run_command(command):
         if fs is not None:
             if len(parts) > 2:
 
-                result = fs.copy_vv_file(parts[1], parts[2])
+                result = fs.copy_vv_file(tree, parts[1], parts[2])
                 if result is not None:
                     xml.obj_to_xml(tree) #Save file_system into an XML
                     return 'File \''+parts[1]+'\' copied to: ' + parts[2], fs.get_abs_path()
@@ -246,7 +250,7 @@ def run_command(command):
     elif parts[0] == 'rv':
         if fs is not None:
             if len(parts) > 2:
-                result = fs.copy_rv_file(parts[1], parts[2])
+                result = fs.copy_rv_file(tree, parts[1], parts[2])
                 if result is not None:
                     xml.obj_to_xml(tree) #Save file_system into an XML
                     return 'File path\'' +parts[1]+'\' copied to: ' + parts[2], fs.get_abs_path()
@@ -258,7 +262,7 @@ def run_command(command):
     elif parts[0] == 'rvdir':
         if fs is not None:
             if len(parts) > 2:
-                result = fs.copy_rv_dir(parts[1], parts[2])
+                result = fs.copy_rv_dir(tree, parts[1], parts[2])
                 if result is not None:
                     xml.obj_to_xml(tree) #Save file_system into an XML
                     return 'Folder path\'' +parts[1]+'\' copied to: ' + parts[2], fs.get_abs_path()

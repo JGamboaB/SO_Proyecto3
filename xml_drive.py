@@ -17,10 +17,15 @@ class File:
     def read(self):
         return self.contents
     
-    def update(self, content):
+    def update(self, fs, content):
+        space_left = remaining_space(fs) + int(self.size)
+        if len(content) > space_left: #No space left
+            return 
+
         self.contents = content
         self.mod_date = str(datetime.datetime.now())
         self.size = str(len(content))
+        return self
 
 
 class Folder:
@@ -128,10 +133,14 @@ class Folder:
     def overwrite_file(self): #Ask if you want to overwrite
         pass
     
-    def create_file(self, name, content): #Name contains the extension
+    def create_file(self, fs, name, content): #Name contains the extension
         for file in self.files:
             if file.name == name: #File already exists
                 self.overwrite_file()
+
+        space_left = remaining_space(fs)
+        if len(content) > space_left: #No space left
+            return 
 
         ct = datetime.datetime.now() #Current Time
         new_file = File(name, content, str(ct), str(ct))
@@ -167,7 +176,7 @@ class Folder:
                 self.folders.remove(folder)
                 del folder
     
-    def copy_vv_file(self, file_name, path):
+    def copy_vv_file(self, fs, file_name, path):
         dest_dir = self.change_dir_abs(path)
         file = self.find_file(file_name)
 
@@ -177,8 +186,14 @@ class Folder:
                 if file_.name == file_name: #File already exists
                     dest_dir.overwrite_file()
 
-            dest_dir.files.append(file)
-            return file
+            space_left = remaining_space(fs)
+            if int(file.size) > space_left: #No space left
+                return 
+
+            ct = datetime.datetime.now() #Current Time
+            new_file = File(file.name, file.contents, str(ct), str(ct), file.size)
+            dest_dir.files.append(new_file)
+            return new_file
 
     def copy_vv_dir(self, dir_name, path):
         dest_dir = self.change_dir_abs(path)
@@ -238,7 +253,7 @@ class Folder:
             
         return 'Works'
     
-    def copy_rv_file(self, file_path, path):
+    def copy_rv_file(self, fs, file_path, path):
         file_name = os.path.basename(file_path)
         dir = self.change_dir_abs(path)
         if dir is None:
@@ -248,7 +263,7 @@ class Folder:
             with open(file_path, 'r') as source_file:
                 file_contents = source_file.read()  
             
-            new_file = dir.create_file(file_name, file_contents)
+            new_file = dir.create_file(fs, file_name, file_contents)
 
             print(f"File '{file_name}' copied to XML path '{path}' successfully.")
             return new_file
@@ -256,18 +271,18 @@ class Folder:
             print(f"Source file '{file_path}' does not exist.")
             return None
     
-    def traverse_folder(self, current_dir, path):
+    def traverse_folder(self, fs, current_dir, path):
         for item in os.listdir(path):
             item_path = os.path.join(path, item)
             if os.path.isfile(item_path):
                 with open(item_path, "r") as file:
                     contents = file.read()
-                current_dir.create_file(item, contents)
+                current_dir.create_file(fs, item, contents)
             elif os.path.isdir(item_path):
                 i = current_dir.create_folder(item)
-                current_dir.traverse_folder(i, item_path)
+                current_dir.traverse_folder(fs, i, item_path)
     
-    def copy_rv_dir(self, dir_path, path):
+    def copy_rv_dir(self, fs, dir_path, path):
         base_folder = self.change_dir_abs(path)
         if base_folder is None:
             return None
@@ -276,7 +291,7 @@ class Folder:
             folder_name = os.path.basename(dir_path)
             new_folder = base_folder.create_folder(folder_name)
 
-            self.traverse_folder(new_folder, dir_path)
+            self.traverse_folder(fs, new_folder, dir_path)
 
             return new_folder
         return
@@ -364,14 +379,17 @@ def print_fs(node, indent=""):
     for folder in node.folders:
         print_fs(folder, indent + "  ")
 
-def tree(node, indent=""):
+def tree_aux(node, indent=""):
     output = ""
     output += indent + "└ Folder: " + node.name + "\n"
     for file in node.files:
         output += indent + "  └ File: " + file.name + " - Creation Date: " + file.creation_date + " - Modified Date: " + file.mod_date + " - Size: " + str(file.size) + "B\n"
     for folder in node.folders:
-        output += tree(folder, indent + "  ")
+        output += tree_aux(folder, indent + "  ")
     return output
+
+def tree(node):
+    return "Total Space: " + str(node.size) + "B - Free Space: " + str(remaining_space(node)) + "B\n\n" + tree_aux(node)
 
 def remaining_space_aux(node, size):
     for file in node.files:
