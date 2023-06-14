@@ -1,0 +1,16 @@
+<?xml version='1.0' encoding='utf-8'?>
+<Folder name="Juan" size="1000">
+    <Folder name="root">
+        <File name="a.txt" contents="Lorem ipsum dolor sit amet." creation_date="2023-06-13 20:47:29.385270" mod_date="2023-06-13 20:47:29.385270" size="27" />
+        <File name="b.txt" contents="Sed ut perspiciatis unde omnis iste natus error." creation_date="2023-06-13 20:47:29.387919" mod_date="2023-06-13 20:47:29.387919" size="48" />
+        <Folder name="files">
+            <File name="file.txt" contents="Nemo enim ipsam voluptatem quia voluptas sit aspernatur aut odit aut fugit." creation_date="2023-06-13 20:47:29.403960" mod_date="2023-06-13 20:47:29.403960" size="75" />
+            <Folder name="bin">
+                <File name="c.txt" contents="Consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua." creation_date="2023-06-13 20:47:29.389921" mod_date="2023-06-13 20:47:29.389921" size="95" />
+                <File name="d.txt" contents="This file has been edited" creation_date="2023-06-13 20:47:29.397425" mod_date="2023-06-13 20:59:01.066268" size="25" />
+                <Folder name="empty" />
+            </Folder>
+        </Folder>
+    </Folder>
+    <Folder name="shared" />
+</Folder>

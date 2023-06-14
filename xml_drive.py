@@ -20,7 +20,7 @@ class File:
     def update(self, content):
         self.contents = content
         self.mod_date = str(datetime.datetime.now())
-        self.size = sys.getsizeof(self)
+        self.size = str(len(content))
 
 
 class Folder:
@@ -113,6 +113,60 @@ class Folder:
             return 1
         return None
 
+    def overwrite_folder(self): #Ask if you want to overwrite
+        pass
+
+    def create_folder(self, name):
+        for folder in self.folders:
+            if folder.name == name: #Folder already exists
+                self.overwrite_folder()
+            
+        new_folder = Folder(name, parent=self)
+        self.folders.append(new_folder)
+        return new_folder
+    
+    def overwrite_file(self): #Ask if you want to overwrite
+        pass
+    
+    def create_file(self, name, content): #Name contains the extension
+        for file in self.files:
+            if file.name == name: #File already exists
+                self.overwrite_file()
+
+        ct = datetime.datetime.now() #Current Time
+        new_file = File(name, content, str(ct), str(ct))
+        size = len(content)
+        new_file.size = str(size)
+
+        self.files.append(new_file)
+        return new_file
+    
+    def delete_file(self, file_name):
+        for file in self.files:
+            if file.name == file_name:
+                self.files.remove(file)
+                del file
+    
+    def delete_files(self):
+        for file in self.files:
+            self.files.remove(file)
+            del file
+
+    def delete_folders(self):
+        for folder in self.folders:
+            folder.delete_files()
+            folder.delete_folders()
+            self.folders.remove(folder)
+            del folder
+
+    def delete_folder(self, folder_name):
+        for folder in self.folders:
+            if folder.name == folder_name:
+                folder.delete_files()
+                folder.delete_folders()
+                self.folders.remove(folder)
+                del folder
+    
     def copy_vv_file(self, file_name, path):
         dest_dir = self.change_dir_abs(path)
         file = self.find_file(file_name)
@@ -177,7 +231,7 @@ class Folder:
                 print(f"Destination directory '{destination_folder_path}' not found.")
 
         for subfolder in folder.folders:
-            copied_folder = self.copy_vr_folder(subfolder, destination_folder_path)
+            copied_folder = self.copy_vr_dir(subfolder, destination_folder_path)
             
             if copied_folder is None:
                 return
@@ -226,61 +280,6 @@ class Folder:
 
             return new_folder
         return
-
-    def overwrite_folder(self): #Ask if you want to overwrite
-        pass
-
-    def create_folder(self, name):
-        for folder in self.folders:
-            if folder.name == name: #Folder already exists
-                self.overwrite_folder()
-            
-        new_folder = Folder(name, parent=self)
-        self.folders.append(new_folder)
-        return new_folder
-    
-    def overwrite_file(self): #Ask if you want to overwrite
-        pass
-    
-    def create_file(self, name, content): #Name contains the extension
-        for file in self.files:
-            if file.name == name: #File already exists
-                self.overwrite_file()
-
-        ct = datetime.datetime.now() #Current Time
-        new_file = File(name, content, str(ct), str(ct))
-        size = sys.getsizeof(new_file)
-        new_file.size = str(size)
-
-        self.files.append(new_file)
-        return new_file
-    
-    def delete_file(self, file_name):
-        for file in self.files:
-            if file.name == file_name:
-                self.files.remove(file)
-                del file
-    
-    def delete_files(self):
-        for file in self.files:
-            self.files.remove(file)
-            del file
-
-    def delete_folders(self):
-        for folder in self.folders:
-            folder.delete_files()
-            folder.delete_folders()
-            self.folders.remove(folder)
-            del folder
-
-    def delete_folder(self, folder_name):
-        for folder in self.folders:
-            if folder.name == folder_name:
-                folder.delete_files()
-                folder.delete_folders()
-                self.folders.remove(folder)
-                del folder
-    
 
 
 def obj_to_xml(file_system):
@@ -361,7 +360,7 @@ def xml_to_obj(path):
 def print_fs(node, indent=""):
     print(indent + "Folder: " + node.name)
     for file in node.files:
-        print(indent + "  File: " + file.name + " - Contents: " + file.contents + " - Creation Date: " + file.creation_date + " - Modified Date: " + file.mod_date + " - Size: " + str(file.size))
+        print(indent + "  File: " + file.name + " - Contents: " + file.contents + " - Creation Date: " + file.creation_date + " - Modified Date: " + file.mod_date + " - Size: " + file.size)
     for folder in node.folders:
         print_fs(folder, indent + "  ")
 
@@ -369,11 +368,20 @@ def tree(node, indent=""):
     output = ""
     output += indent + "└ Folder: " + node.name + "\n"
     for file in node.files:
-        output += indent + "  └ File: " + file.name + " - Creation Date: " + file.creation_date + " - Modified Date: " + file.mod_date + " - Size: " + str(file.size) + "\n"
+        output += indent + "  └ File: " + file.name + " - Creation Date: " + file.creation_date + " - Modified Date: " + file.mod_date + " - Size: " + str(file.size) + "B\n"
     for folder in node.folders:
         output += tree(folder, indent + "  ")
     return output
 
+def remaining_space_aux(node, size):
+    for file in node.files:
+        size -= int(file.size)
+    for folder in node.folders:
+        size = remaining_space_aux(folder, size)
+    return size
+
+def remaining_space(fs):
+    return remaining_space_aux(fs, int(fs.size))
 
 def create_drive(username, size):
     fs = Folder(username)

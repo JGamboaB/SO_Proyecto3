@@ -40,7 +40,9 @@ def run_command(command):
     
     # Logout
     elif parts[0] == 'logout':
-        xml.obj_to_xml(tree) #Save file_system into an XML
+        if tree is not None:
+            xml.obj_to_xml(tree) #Save file_system into an XML
+            
         username = ''
         fs = tree = None
         return 'You logout.', ''
@@ -57,12 +59,12 @@ def run_command(command):
             return 'Drive loaded successfully into ' + fs.name, '' #Existing drive
         
         except FileNotFoundError:
-            if len(parts) > 1:
+            if len(parts) > 1 and parts[1].isdigit() and int(parts[1]) > 0:
                 fs = xml.create_drive(username, parts[1]) #Create a new drive
                 tree = fs
                 xml.obj_to_xml(tree) #Save file_system into an XML
                 return 'Drive created successfully', ''
-            return '[Help]: \tdrive &ltsize&gt [Create new drive], \t drive [Enter an existing drive]', ''
+            return '[Help]: \tdrive &ltsize_in_bytes&gt [Create new drive], \t drive [Enter an existing drive]', ''
     
     # List files and folders in current directory
     elif parts[0] == 'ls':
@@ -92,8 +94,8 @@ def run_command(command):
         if fs is not None:
             if len(parts) > 1:
 
-                if not (fs != tree and not (fs.parent == tree and fs.name == 'shared')): #Cannot modify dir (first directory and shared)
-                    return '[Error] Cannot edit the current directory', fs.get_abs_path()
+                #if not (fs != tree and not (fs.parent == tree and fs.name == 'shared')): #Cannot modify dir (first directory and shared)
+                #    return '[Error] Cannot edit the current directory', fs.get_abs_path()
                 
                 fs.create_folder(parts[1])
                 xml.obj_to_xml(tree) #Save file_system into an XML
@@ -107,8 +109,8 @@ def run_command(command):
         if fs is not None:
             if len(parts) > 2:
 
-                if not (fs != tree and not (fs.parent == tree and fs.name == 'shared')): #Cannot modify dir
-                    return '[Error] Cannot edit the current directory', fs.get_abs_path()
+                #if not (fs != tree and not (fs.parent == tree and fs.name == 'shared')): #Cannot modify dir
+                #    return '[Error] Cannot edit the current directory', fs.get_abs_path()
 
                 fs.create_file(parts[1], ' '.join(parts[2:]))
                 xml.obj_to_xml(tree) #Save file_system into an XML
@@ -144,8 +146,8 @@ def run_command(command):
         if fs is not None:
             if len(parts) > 1:
 
-                if not (fs != tree): #Cannot modify dir
-                    return '[Error] Cannot edit the current directory', fs.get_abs_path()
+                #if not (fs != tree): #Cannot modify dir
+                #    return '[Error] Cannot edit the current directory', fs.get_abs_path()
                 
                 fs.delete_file(parts[1])
                 xml.obj_to_xml(tree) #Save file_system into an XML
@@ -159,8 +161,8 @@ def run_command(command):
         if fs is not None:
             if len(parts) > 1:
                 
-                if not (fs != tree): #Cannot modify dir
-                    return '[Error] Cannot edit the current directory', fs.get_abs_path()
+                #if not (fs != tree): #Cannot modify dir
+                #    return '[Error] Cannot edit the current directory', fs.get_abs_path()
                 
                 fs.delete_folder(parts[1])
                 xml.obj_to_xml(tree) #Save file_system into an XML
@@ -280,7 +282,7 @@ def run_command(command):
     elif parts[0] == 'vrdir':
         if fs is not None:
             if len(parts) > 2:
-                folder = fs.find_dir(parts[1])
+                folder = fs.change_dir_abs(parts[1])
                 result = fs.copy_vr_dir(folder, parts[2])
                 if result is not None:
                     return 'Folder \'' +parts[1]+'\' copied to: ' + parts[2], fs.get_abs_path()
@@ -288,9 +290,11 @@ def run_command(command):
             return '[Help] vrdir &ltdir_name&gt &ltnew_path&gt', fs.get_abs_path()
         return '[Error] Drive not loaded.', '' 
 
+    # Share file
     elif parts[0] == 'sh':
         pass
 
+    # Share folder
     elif parts[0] == 'shdir':
         pass
 
@@ -309,7 +313,7 @@ def run_command(command):
         ---------------------------------[Help]---------------------------------
         login &ltusername&gt
         logout
-        drive, drive &ltsize&gt\t\tCreate/Enter a drive/file system
+        drive, drive &ltsize_in_bytes&gt\tEnter/Create a drive
         tree\t\t\t\tShow the full 'tree' of the file system
         ls\t\t\t\tList files and folders in current directory
         cd &ltpath&gt\t\t\tChange directory
