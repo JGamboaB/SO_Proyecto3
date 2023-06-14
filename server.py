@@ -7,8 +7,6 @@ username = ""
 fs = None #file_system NODE
 tree = None
 
-#SAVE CHANGES INTO THE XML FILE with every ... SHARE, copy
-
 @app.route('/')
 def index():
     return render_template('terminal.html', username=username)
@@ -24,6 +22,7 @@ def run_command(command):
     global fs
     global tree
     parts = command.split()
+    overwrite = parts[-1] == '-o'
 
     # Login
     if parts[0] == 'login':
@@ -97,9 +96,12 @@ def run_command(command):
                 #if not (fs != tree and not (fs.parent == tree and fs.name == 'shared')): #Cannot modify dir (first directory and shared)
                 #    return '[Error] Cannot edit the current directory', fs.get_abs_path()
                 
-                fs.create_folder(parts[1])
-                xml.obj_to_xml(tree) #Save file_system into an XML
-                return 'Folder made: ' + parts[1], fs.get_abs_path()
+                result = fs.create_folder(parts[1], overwrite)
+
+                if result is not None:
+                    xml.obj_to_xml(tree) #Save file_system into an XML
+                    return 'Folder made: ' + parts[1], fs.get_abs_path()
+                return '[Error] Folder already exists', fs.get_abs_path()
             
             return '[Help] mkdir &ltdir_name&gt', fs.get_abs_path()
         return '[Error] Drive not loaded', ''
@@ -111,8 +113,14 @@ def run_command(command):
 
                 #if not (fs != tree and not (fs.parent == tree and fs.name == 'shared')): #Cannot modify dir
                 #    return '[Error] Cannot edit the current directory', fs.get_abs_path()
+                
+                if not overwrite:
+                    contents = ' '.join(parts[2:])
+                else:
+                    contents = ' '.join(parts[2:-1]) #So it doesn't save the flag '-o' into the contents of the file
 
-                result = fs.create_file(tree, parts[1], ' '.join(parts[2:]))
+                result = fs.create_file(tree, parts[1], contents, overwrite)
+
                 if result is not None:
                     xml.obj_to_xml(tree) #Save file_system into an XML
                     return 'File made: ' + parts[1], fs.get_abs_path()
@@ -194,8 +202,7 @@ def run_command(command):
     elif parts[0] == 'mv':
         if fs is not None:
             if len(parts) > 2:
-
-                result = fs.move_file(parts[1], parts[2])
+                result = fs.move_file(parts[1], parts[2], overwrite)
                 if result is not None:
                     xml.obj_to_xml(tree) #Save file_system into an XML
                     return 'File \''+parts[1]+'\' moved to: ' + parts[2], fs.get_abs_path()
@@ -209,7 +216,7 @@ def run_command(command):
         if fs is not None:
             if len(parts) > 2:
 
-                result = fs.move_dir(parts[1], parts[2])
+                result = fs.move_dir(parts[1], parts[2], overwrite)
                 if result is not None:
                     xml.obj_to_xml(tree) #Save file_system into an XML
                     return 'Folder \''+parts[1]+'\' moved to: ' + parts[2], fs.get_abs_path()
@@ -223,7 +230,7 @@ def run_command(command):
         if fs is not None:
             if len(parts) > 2:
 
-                result = fs.copy_vv_file(tree, parts[1], parts[2])
+                result = fs.copy_vv_file(tree, parts[1], parts[2], overwrite)
                 if result is not None:
                     xml.obj_to_xml(tree) #Save file_system into an XML
                     return 'File \''+parts[1]+'\' copied to: ' + parts[2], fs.get_abs_path()
@@ -237,7 +244,7 @@ def run_command(command):
         if fs is not None:
             if len(parts) > 2:
 
-                result = fs.copy_vv_dir(tree, parts[1], parts[2])
+                result = fs.copy_vv_dir(tree, parts[1], parts[2], overwrite)
                 if result is not None:
                     xml.obj_to_xml(tree) #Save file_system into an XML
 
@@ -254,7 +261,7 @@ def run_command(command):
     elif parts[0] == 'rv':
         if fs is not None:
             if len(parts) > 2:
-                result = fs.copy_rv_file(tree, parts[1], parts[2])
+                result = fs.copy_rv_file(tree, parts[1], parts[2], overwrite)
                 if result is not None:
                     xml.obj_to_xml(tree) #Save file_system into an XML
                     return 'File path\'' +parts[1]+'\' copied to: ' + parts[2], fs.get_abs_path()
@@ -266,7 +273,7 @@ def run_command(command):
     elif parts[0] == 'rvdir':
         if fs is not None:
             if len(parts) > 2:
-                result = fs.copy_rv_dir(tree, parts[1], parts[2])
+                result = fs.copy_rv_dir(tree, parts[1], parts[2], overwrite)
                 if result is not None:
                     xml.obj_to_xml(tree) #Save file_system into an XML
                     return 'Folder path\'' +parts[1]+'\' copied to: ' + parts[2], fs.get_abs_path()
@@ -302,7 +309,7 @@ def run_command(command):
     elif parts[0] == 'sh':
         if fs is not None:
             if len(parts) > 2:
-                result = fs.share_file(parts[1], parts[2])
+                result = fs.share_file(parts[1], parts[2], overwrite)
                 if result is not None:
                     return 'File \''+parts[1]+'\' successfully shared to User \''+ parts[2] +'\'', fs.get_abs_path()
                 return '[Error] Couldn\'t share the file to the desired user.', fs.get_abs_path()
@@ -313,13 +320,13 @@ def run_command(command):
     elif parts[0] == 'shdir':
         if fs is not None:
             if len(parts) > 2:
-                result = fs.share_folder(parts[1], parts[2])
+                result = fs.share_folder(parts[1], parts[2], overwrite)
                 if result is not None:
                     return 'Folder \''+parts[1]+'\' successfully shared to User \''+ parts[2] +'\'', fs.get_abs_path()
                 return '[Error] Couldn\'t share the folder to the desired user.', fs.get_abs_path()
             return '[Help] shdir &ltdir_name&gt &ltusername&gt', fs.get_abs_path()
         return '[Error] Drive not loaded.', '' 
-
+    
     # Show the full 'tree' of the file system
     elif parts[0] == 'tree':
         if fs is not None:
@@ -332,28 +339,28 @@ def run_command(command):
         if fs is not None:
             path = fs.get_abs_path()
         return '''
-        ---------------------------------[Help]---------------------------------
+        -------------------------------------[Help]-------------------------------------
         login &ltusername&gt
         logout
         drive, drive &ltsize_in_bytes&gt\tEnter/Create a drive
         tree\t\t\t\tShow the full 'tree' of the file system
         ls\t\t\t\tList files and folders in current directory
         cd &ltpath&gt\t\t\tChange directory
-        mk &ltfile_name&gt\t\t\tMake a file
-        mkdir &ltdir_name&gt\t\tMake a directory
+        mk &ltfile_name&gt\t\t\tMake a file\t\t\t-o (Overwrite)
+        mkdir &ltdir_name&gt\t\tMake a directory\t\t-o (Overwrite)
         cat &ltfile_name&gt\t\t\tRead file
         stat &ltfile_name&gt\t\tProperties/Stats of a file
         edit &ltfile_name&gt &ltnew_contents&gt\tUpdate file contents
-        mv &ltfile_name&gt &ltnew_path&gt\tMove file
-        mvdir &ltdir_name&gt &ltnew_path&gt\tMove directory
-        vv &ltfile_name&gt &ltnew_path&gt\tCopy (normal) file
-        vvdir &ltdir_name&gt &ltnew_path&gt\tCopy (normal) folder
+        mv &ltfile_name&gt &ltnew_path&gt\tMove file\t\t\t-o (Overwrite)
+        mvdir &ltdir_name&gt &ltnew_path&gt\tMove directory\t\t\t-o (Overwrite)
+        vv &ltfile_name&gt &ltnew_path&gt\tCopy (normal) file\t\t-o (Overwrite)
+        vvdir &ltdir_name&gt &ltnew_path&gt\tCopy (normal) folder\t\t-o (Overwrite)
         vr &ltfile_name&gt &ltnew_path&gt\tCopy (download) file
         vrdir &ltdir_name&gt &ltnew_path&gt\tCopy (download) folder
-        rv &ltfile_path&gt &ltnew_path&gt\tCopy (load) file
-        rvdir &ltdir_path&gt &ltnew_path&gt\tCopy (load) folder
-        sh &ltfile_name&gt &ltusername&gt\tShare file
-        shdir &ltdir_name&gt &ltusername&gt\tShare folder
+        rv &ltfile_path&gt &ltnew_path&gt\tCopy (load) file\t\t-o (Overwrite)
+        rvdir &ltdir_path&gt &ltnew_path&gt\tCopy (load) folder\t\t-o (Overwrite)
+        sh &ltfile_name&gt &ltusername&gt\tShare file\t\t\t-o (Overwrite)
+        shdir &ltdir_name&gt &ltusername&gt\tShare folder\t\t\t-o (Overwrite)
         rm &ltfile_name&gt\t\t\tRemove file
         rmdir &ltname_of_dir&gt\t\tRemove directory
         help\t\t\t\tDisplay all commands

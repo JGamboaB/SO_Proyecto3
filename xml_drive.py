@@ -23,7 +23,7 @@ class File:
             return 
 
         self.contents = content
-        self.mod_date = str(datetime.datetime.now())
+        self.mod_date = str(datetime.datetime.now()).split('.')[0]
         self.size = str(len(content))
         return self
 
@@ -82,7 +82,7 @@ class Folder:
                 return file
         return None
     
-    def move_file(self, file_name, path):
+    def move_file(self, file_name, path, o_flag):
         dest_dir = self.change_dir_abs(path)
         file = self.find_file(file_name)
 
@@ -90,7 +90,9 @@ class Folder:
 
             for file_ in dest_dir.files:
                 if file_.name == file_name: #File already exists
-                    dest_dir.overwrite_file()
+                    if not o_flag:
+                        return
+                    dest_dir.files.remove(file_)
 
             dest_dir.files.append(file)
             self.files.remove(file)
@@ -103,7 +105,7 @@ class Folder:
                 return folder
         return None
 
-    def move_dir(self, dir_name, path):
+    def move_dir(self, dir_name, path, o_flag):
         dest_dir = self.change_dir_abs(path)
         dir = self.find_dir(dir_name)
 
@@ -111,39 +113,39 @@ class Folder:
 
             for dir_ in dest_dir.folders:
                 if dir_.name == dir_name: #File already exists
-                    dest_dir.overwrite_folder()
+                    if not o_flag:
+                        return
+                    dest_dir.folders.remove(dir_)
 
             dest_dir.folders.append(dir)
             self.folders.remove(dir)
             return 1
         return None
 
-    def overwrite_folder(self): #Ask if you want to overwrite
-        pass
-
-    def create_folder(self, name):
+    def create_folder(self, name, o_flag):
         for folder in self.folders:
             if folder.name == name: #Folder already exists
-                self.overwrite_folder()
+                if not o_flag:#Ask if you want to overwrite
+                    return
+                self.folders.remove(folder)
             
         new_folder = Folder(name, parent=self)
         self.folders.append(new_folder)
         return new_folder
     
-    def overwrite_file(self): #Ask if you want to overwrite
-        pass
-    
-    def create_file(self, fs, name, content): #Name contains the extension
-        for file in self.files:
-            if file.name == name: #File already exists
-                self.overwrite_file()
-
+    def create_file(self, fs, name, content, o_flag): #Name contains the extension
         space_left = remaining_space(fs)
         if len(content) > space_left: #No space left
             return 
+        
+        for file in self.files:
+            if file.name == name: #File already exists
+                if not o_flag:#Ask if you want to overwrite
+                    return
+                self.files.remove(file)
 
-        ct = datetime.datetime.now() #Current Time
-        new_file = File(name, content, str(ct), str(ct))
+        ct = str(datetime.datetime.now()).split('.')[0] #Current Time
+        new_file = File(name, content, ct, ct)
         size = len(content)
         new_file.size = str(size)
 
@@ -183,7 +185,7 @@ class Folder:
             size += folder.size_of_dir()
         return size
     
-    def copy_vv_file(self, fs, file_name, path):
+    def copy_vv_file(self, fs, file_name, path, o_flag):
         dest_dir = self.change_dir_abs(path)
         file = self.find_file(file_name)
 
@@ -191,18 +193,21 @@ class Folder:
 
             for file_ in dest_dir.files:
                 if file_.name == file_name: #File already exists
-                    dest_dir.overwrite_file()
+                    if not o_flag:
+                        return
+                    dest_dir.files.remove(file_)
 
             space_left = remaining_space(fs)
             if int(file.size) > space_left: #No space left
                 return 
 
-            ct = datetime.datetime.now() #Current Time
-            new_file = File(file.name, file.contents, str(ct), str(ct), file.size)
+            ct = str(datetime.datetime.now()).split('.')[0] #Current Time
+
+            new_file = File(file.name, file.contents, ct, ct, file.size)
             dest_dir.files.append(new_file)
             return new_file
 
-    def copy_vv_dir(self, fs, dir_name, path):
+    def copy_vv_dir(self, fs, dir_name, path, o_flag):
         dest_dir = self.change_dir_abs(path)
         dir = self.find_dir(dir_name)
 
@@ -210,7 +215,9 @@ class Folder:
 
             for dir_ in dest_dir.folders:
                 if dir_.name == dir_name: #File already exists
-                    dest_dir.overwrite_folder()
+                    if not o_flag:
+                        return
+                    dest_dir.folders.remove(dir_)
 
             #Size of all the files <= remaining space
             if dir.size_of_dir() > remaining_space(fs): #No space left
@@ -264,7 +271,7 @@ class Folder:
             
         return 'Works'
     
-    def copy_rv_file(self, fs, file_path, path):
+    def copy_rv_file(self, fs, file_path, path, o_flag):
         file_name = os.path.basename(file_path)
         dir = self.change_dir_abs(path)
         if dir is None:
@@ -274,7 +281,7 @@ class Folder:
             with open(file_path, 'r') as source_file:
                 file_contents = source_file.read()  
             
-            new_file = dir.create_file(fs, file_name, file_contents)
+            new_file = dir.create_file(fs, file_name, file_contents, o_flag)
 
             print(f"File '{file_name}' copied to XML path '{path}' successfully.")
             return new_file
@@ -282,32 +289,35 @@ class Folder:
             print(f"Source file '{file_path}' does not exist.")
             return None
     
-    def traverse_folder(self, fs, current_dir, path):
+    def traverse_folder(self, fs, current_dir, path, o_flag):
+        if current_dir is None:
+            return
+        
         for item in os.listdir(path):
             item_path = os.path.join(path, item)
             if os.path.isfile(item_path):
                 with open(item_path, "r") as file:
                     contents = file.read()
-                current_dir.create_file(fs, item, contents)
+                current_dir.create_file(fs, item, contents, o_flag)
             elif os.path.isdir(item_path):
-                i = current_dir.create_folder(item)
-                current_dir.traverse_folder(fs, i, item_path)
+                i = current_dir.create_folder(item, o_flag)
+                current_dir.traverse_folder(fs, i, item_path, o_flag)
     
-    def copy_rv_dir(self, fs, dir_path, path):
+    def copy_rv_dir(self, fs, dir_path, path, o_flag):
         base_folder = self.change_dir_abs(path)
         if base_folder is None:
             return None
         
         if os.path.isdir(dir_path):
             folder_name = os.path.basename(dir_path)
-            new_folder = base_folder.create_folder(folder_name)
+            new_folder = base_folder.create_folder(folder_name, o_flag)
 
-            self.traverse_folder(fs, new_folder, dir_path)
+            self.traverse_folder(fs, new_folder, dir_path, o_flag)
 
             return new_folder
         return
     
-    def share_file(self, file_name, username):
+    def share_file(self, file_name, username, o_flag):
         file = self.find_file(file_name)
         if file is None:
             return
@@ -317,15 +327,17 @@ class Folder:
             fs2 = xml_to_obj(xml_path)
             shared_folder = fs2.change_dir_abs('shared')
             if shared_folder is None:
-                shared_folder = fs2.create_folder('shared')
+                shared_folder = fs2.create_folder('shared', True)
 
-            shared_folder.create_file(fs2, file.name, file.contents)
-            obj_to_xml(fs2) #Save changes made
-            return 'File \''+file.name+'\' successfully shared to User \''+ username +'\''
+            created_file = shared_folder.create_file(fs2, file.name, file.contents, o_flag)
+            if created_file is not None:
+                obj_to_xml(fs2) #Save changes made
+                return 'File \''+file.name+'\' successfully shared to User \''+ username +'\''
+            return
         except FileNotFoundError: #Drive not found
             return 
 
-    def share_folder(self, dir_name, username):
+    def share_folder(self, dir_name, username, o_flag):
         dir = self.find_dir(dir_name)
         if dir is None:
             return
@@ -335,11 +347,13 @@ class Folder:
             fs2 = xml_to_obj(xml_path)
             shared_folder = fs2.change_dir_abs('shared')
             if shared_folder is None:
-                shared_folder = fs2.create_folder('shared')
+                shared_folder = fs2.create_folder('shared', True)
 
             for folder in shared_folder.folders: 
-                if folder.name == dir_name:
-                    shared_folder.overwrite_file() #File already exists
+                if folder.name == dir_name: #File already exists
+                    if not o_flag:
+                        return
+                    shared_folder.folders.remove(folder)
 
             if dir.size_of_dir() > remaining_space(fs2): #Not enough space to share
                 return
