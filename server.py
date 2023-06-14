@@ -91,7 +91,7 @@ def run_command(command):
     # Make a directory
     elif parts[0] == 'mkdir':
         if fs is not None:
-            if len(parts) > 1:
+            if len(parts) == 2:
 
                 #if not (fs != tree and not (fs.parent == tree and fs.name == 'shared')): #Cannot modify dir (first directory and shared)
                 #    return '[Error] Cannot edit the current directory', fs.get_abs_path()
@@ -103,7 +103,7 @@ def run_command(command):
                     return 'Folder made: ' + parts[1], fs.get_abs_path()
                 return '[Error] Folder already exists', fs.get_abs_path()
             
-            return '[Help] mkdir &ltdir_name&gt', fs.get_abs_path()
+            return '[Help] mkdir &ltdir_name&gt [No Spaces Allowed]', fs.get_abs_path()
         return '[Error] Drive not loaded', ''
     
     # Make a file
@@ -113,7 +113,12 @@ def run_command(command):
 
                 #if not (fs != tree and not (fs.parent == tree and fs.name == 'shared')): #Cannot modify dir
                 #    return '[Error] Cannot edit the current directory', fs.get_abs_path()
-                
+
+                # Validate the file_name has no spaces and has an extension
+                if '.' not in parts[1]:
+                    return '[Error] The file name contains spaces or lacks an extension.', fs.get_abs_path()
+
+                # So it doesn't include the overwrite flag into the contents of the file
                 if not overwrite:
                     contents = ' '.join(parts[2:])
                 else:
