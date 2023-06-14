@@ -317,7 +317,7 @@ class Folder:
             return new_folder
         return
     
-    def share_file(self, file_name, username, o_flag):
+    def share_file(self, file_name, username, o_flag, sender_username):
         file = self.find_file(file_name)
         if file is None:
             return
@@ -329,7 +329,11 @@ class Folder:
             if shared_folder is None:
                 shared_folder = fs2.create_folder('shared', True)
 
-            created_file = shared_folder.create_file(fs2, file.name, file.contents, o_flag)
+            user_sf = shared_folder.change_dir_abs(sender_username)
+            if user_sf is None:
+                user_sf = shared_folder.create_folder(sender_username, True)
+
+            created_file = user_sf.create_file(fs2, file.name, file.contents, o_flag)
             if created_file is not None:
                 obj_to_xml(fs2) #Save changes made
                 return 'File \''+file.name+'\' successfully shared to User \''+ username +'\''
@@ -337,7 +341,7 @@ class Folder:
         except FileNotFoundError: #Drive not found
             return 
 
-    def share_folder(self, dir_name, username, o_flag):
+    def share_folder(self, dir_name, username, o_flag, sender_username):
         dir = self.find_dir(dir_name)
         if dir is None:
             return
@@ -349,16 +353,20 @@ class Folder:
             if shared_folder is None:
                 shared_folder = fs2.create_folder('shared', True)
 
-            for folder in shared_folder.folders: 
+            user_sf = shared_folder.change_dir_abs(sender_username)
+            if user_sf is None:
+                user_sf = shared_folder.create_folder(sender_username, True)
+
+            for folder in user_sf.folders: 
                 if folder.name == dir_name: #File already exists
                     if not o_flag:
                         return
-                    shared_folder.folders.remove(folder)
+                    user_sf.folders.remove(folder)
 
             if dir.size_of_dir() > remaining_space(fs2): #Not enough space to share
                 return
             
-            shared_folder.folders.append(dir) #Shares the folder as it is
+            user_sf.folders.append(dir) #Shares the folder as it is
             obj_to_xml(fs2) #Save changes made
             return dir
         except FileNotFoundError:
