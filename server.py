@@ -300,11 +300,25 @@ def run_command(command):
 
     # Share file
     elif parts[0] == 'sh':
-        pass
+        if fs is not None:
+            if len(parts) > 2:
+                result = fs.share_file(parts[1], parts[2])
+                if result is not None:
+                    return 'File \''+parts[1]+'\' successfully shared to User \''+ parts[2] +'\'', fs.get_abs_path()
+                return '[Error] Couldn\'t share the file to the desired user.', fs.get_abs_path()
+            return '[Help] sh &ltfile_name&gt &ltusername&gt', fs.get_abs_path()
+        return '[Error] Drive not loaded.', '' 
 
     # Share folder
     elif parts[0] == 'shdir':
-        pass
+        if fs is not None:
+            if len(parts) > 2:
+                result = fs.share_folder(parts[1], parts[2])
+                if result is not None:
+                    return 'Folder \''+parts[1]+'\' successfully shared to User \''+ parts[2] +'\'', fs.get_abs_path()
+                return '[Error] Couldn\'t share the folder to the desired user.', fs.get_abs_path()
+            return '[Help] shdir &ltdir_name&gt &ltusername&gt', fs.get_abs_path()
+        return '[Error] Drive not loaded.', '' 
 
     # Show the full 'tree' of the file system
     elif parts[0] == 'tree':

@@ -306,6 +306,49 @@ class Folder:
 
             return new_folder
         return
+    
+    def share_file(self, file_name, username):
+        file = self.find_file(file_name)
+        if file is None:
+            return
+
+        xml_path = username + ".xml"
+        try:
+            fs2 = xml_to_obj(xml_path)
+            shared_folder = fs2.change_dir_abs('shared')
+            if shared_folder is None:
+                shared_folder = fs2.create_folder('shared')
+
+            shared_folder.create_file(fs2, file.name, file.contents)
+            obj_to_xml(fs2) #Save changes made
+            return 'File \''+file.name+'\' successfully shared to User \''+ username +'\''
+        except FileNotFoundError: #Drive not found
+            return 
+
+    def share_folder(self, dir_name, username):
+        dir = self.find_dir(dir_name)
+        if dir is None:
+            return
+        
+        xml_path = username + ".xml"
+        try:
+            fs2 = xml_to_obj(xml_path)
+            shared_folder = fs2.change_dir_abs('shared')
+            if shared_folder is None:
+                shared_folder = fs2.create_folder('shared')
+
+            for folder in shared_folder.folders: 
+                if folder.name == dir_name:
+                    shared_folder.overwrite_file() #File already exists
+
+            if dir.size_of_dir() > remaining_space(fs2): #Not enough space to share
+                return
+            
+            shared_folder.folders.append(dir) #Shares the folder as it is
+            obj_to_xml(fs2) #Save changes made
+            return dir
+        except FileNotFoundError:
+            return
 
 
 def obj_to_xml(file_system):
