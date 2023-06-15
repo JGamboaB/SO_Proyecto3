@@ -351,7 +351,7 @@ def run_command(command):
         tree\t\t\t\tShow the full 'tree' of the file system
         ls\t\t\t\tList files and folders in current directory
         cd &ltpath&gt\t\t\tChange directory
-        mk &ltfile_name&gt\t\t\tMake a file\t\t\t-o (Overwrite)
+        mk &ltfile_name&gt &ltcontents&gt\tMake a file\t\t\t-o (Overwrite)
         mkdir &ltdir_name&gt\t\tMake a directory\t\t-o (Overwrite)
         cat &ltfile_name&gt\t\t\tRead file
         stat &ltfile_name&gt\t\tProperties/Stats of a file
