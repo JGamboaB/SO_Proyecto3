@@ -383,7 +383,7 @@ class FileSystem:
 
     def show_tree(self, parts):
         if self.fs is not None:
-            return xml.self.tree(self.tree), self.fs.get_abs_path()
+            return xml.tree(self.tree), self.fs.get_abs_path()
         return '[Error] Drive not loaded.', ''
 
     def help(self, parts):
