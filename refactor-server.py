@@ -393,7 +393,6 @@ class FileSystem:
             path = self.fs.get_abs_path()
         return '''
         -------------------------------------[Help]-------------------------------------
-        login &lt username&gt
         logout
         drive, drive &ltsize_in_bytes&gt\tEnter/Create a drive
         tree\t\t\t\tShow the full 'tree' of the file system
