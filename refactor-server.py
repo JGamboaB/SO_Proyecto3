@@ -16,11 +16,21 @@ class FileSystem:
         parts = command.split()
         overwrite = parts[-1] == '-o'
 
+
         # Login
         if parts[0] == 'login':
             return self.login(parts)
+        
+        # Refresh xml 
+        xml_path = self.username + ".xml"
+        try:
+            self.fs = xml.xml_to_obj(xml_path)
+            self.tree = self.fs
+        except FileNotFoundError:
+            pass
+
         # Logout
-        elif parts[0] == 'logout':
+        if parts[0] == 'logout':
             return self.logout()
         # Create/Enter a drive/file system
         elif parts[0] == 'drive':
