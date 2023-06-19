@@ -392,10 +392,10 @@ class FileSystem:
             path = self.fs.get_abs_path()
         return '''
         -------------------------------------[Help]-------------------------------------
-        login &ltself.username&gt
+        login &lt username&gt
         logout
         drive, drive &ltsize_in_bytes&gt\tEnter/Create a drive
-        self.tree\t\t\t\tShow the full 'self.tree' of the file system
+        tree\t\t\t\tShow the full 'tree' of the file system
         ls\t\t\t\tList files and folders in current directory
         cd &ltpath&gt\t\t\tChange directory
         mk &ltfile_name&gt &ltcontents&gt\tMake a file\t\t\t-o (Overwrite)
@@ -411,8 +411,8 @@ class FileSystem:
         vrdir &ltdir_name&gt &ltnew_path&gt\tCopy (download) folder
         rv &ltfile_path&gt &ltnew_path&gt\tCopy (load) file\t\t-o (Overwrite)
         rvdir &ltdir_path&gt &ltnew_path&gt\tCopy (load) folder\t\t-o (Overwrite)
-        sh &ltfile_name&gt &ltself.username&gt\tShare file\t\t\t-o (Overwrite)
-        shdir &ltdir_name&gt &ltself.username&gt\tShare folder\t\t\t-o (Overwrite)
+        sh &ltfile_name&gt &ltusername&gt\tShare file\t\t\t-o (Overwrite)
+        shdir &ltdir_name&gt &ltusername&gt\tShare folder\t\t\t-o (Overwrite)
         rm &ltfile_name&gt\t\t\tRemove file
         rmdir &ltname_of_dir&gt\t\tRemove directory
         help\t\t\t\tDisplay all commands
