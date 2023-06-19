@@ -20,15 +20,6 @@ class FileSystem:
         # Login
         if parts[0] == 'login':
             return self.login(parts)
-        
-        # Refresh xml 
-        xml_path = self.username + ".xml"
-        try:
-            self.fs = xml.xml_to_obj(xml_path)
-            self.tree = self.fs
-        except FileNotFoundError:
-            pass
-
         # Logout
         if parts[0] == 'logout':
             return self.logout()
