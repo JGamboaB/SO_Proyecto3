@@ -35,11 +35,18 @@
     <script>
         function submitCommand() {
             var command = $('#command').val();
+            const queryString = window.location.search;
+            const urlParams = new URLSearchParams(queryString);
+            const userP = urlParams.get('user')
             $.ajax({
                 type: 'POST',
-                url: '/execute',
+                url: '/execute?user='+userP,
                 data: {command: command},
                 success: function(response) {
+                    if (response.result === 'You logout.') {
+                        window.location.href = '/';
+                    }
+                    console.log(response);
                     $('#terminal').append('<p>'+response.path+'&gt; ' + command + '</p>');
                     $('#terminal').append('<pre>' + response.result + '</pre>');
                     $('#command').val('');
